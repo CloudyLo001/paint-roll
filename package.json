@@ -4,11 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
     "build": "tsc && vite build",
+    "build:site": "npm run build && node scripts/assemble-site.mjs",
+    "dev": "vite --host 127.0.0.1",
     "preview": "vite preview --host 127.0.0.1",
-    "typecheck": "tsc --noEmit",
-    "sync-assets": "node \"C:/Users/Asus/.claude/skills/mint-threejs-skills/scripts/sync-mint-assets.mjs\""
+    "preview:site": "node scripts/assemble-site.mjs && npx --yes serve _site -l 4300",
+    "sync-assets": "node \"C:/Users/Asus/.claude/skills/mint-threejs-skills/scripts/sync-mint-assets.mjs\"",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "three": "^0.184.0"

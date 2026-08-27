@@ -16,7 +16,45 @@ npm install
 npm run dev
 ```
 
-`npm run build` typechecks and produces a production build in `dist/`.
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | The game, on a dev server |
+| `npm run build` | Typecheck + production build of the game into `dist/` |
+| `npm run build:site` | The above, then assembles `_site/` — landing page at `/`, game at `/play/` |
+| `npm run preview:site` | Assembles and serves `_site/` on :4300, exactly as deployed |
+
+## Deployment
+
+Pushing to `main` runs `.github/workflows/deploy.yml`, which builds and publishes
+`_site/` to the `gh-pages` branch. The deployed shape is:
+
+```
+/       the landing page   (site/)
+/play/  the game           (dist/)
+```
+
+Enable Pages under Settings → Pages → Deploy from a branch → `gh-pages` / root.
+
+### The landing page
+
+`site/index.html` is a single self-contained page — no bundler, three.js via import
+map. Its hero is a live render using the game's own roller GLB and brick grime
+maps: a roller lays vertical bands across a filthy wall and stops short of
+covering it, because the boundary between the grime and the fresh coat is the
+entire pitch. Clicking a palette swatch recolours it.
+
+Two things the hero has to keep doing:
+
+- **The title never waits on the module graph.** Copy and CTA are plain HTML;
+  `poster.jpg` sits behind them; the canvas mounts underneath and fades the
+  poster out on its first frame. If WebGL fails or the GLB never arrives, the
+  poster simply stays and nothing breaks.
+- **Hero textures are separate, lighter files.** `site/assets/textures/*.webp`
+  are WebP re-encodes of the game's PNG maps — 4.8 MB down to 815 KB. The game
+  still loads its own originals.
+
+Regenerate `poster.jpg` by loading the page, letting the scene settle, and
+capturing the hero canvas.
 
 ## Controls
 
@@ -95,6 +133,13 @@ but it stays in the registry rather than being deleted.
 
 Generated assets are tracked in `mint-assets.json` (logical keys → files under
 `public/assets/mint/`). Concept art approved before 3D generation is kept in `concepts/`.
+
+The registry deliberately records every artifact Mint produced, but the game only
+fetches the four PBR maps and the GLB. A Vite plugin drops the map archives,
+preview images, and height maps from the production build — 22.5 MB of a 41 MB
+output. It is a denylist rather than an allowlist, so a newly generated material's
+maps ship automatically and getting the list wrong yields a bigger build rather
+than a broken one.
 
 Re-sync with the skill's script:
 
