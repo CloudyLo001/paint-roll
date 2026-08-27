@@ -5,18 +5,21 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Pages serves this repository from the gh-pages branch, so the workflow needs
-# to write a branch rather than upload a Pages artifact. The published tree is
-# the landing page at / with the game under /play/.
+# Artifact-based Pages deployment: the build is uploaded and served directly,
+# so nothing is force-pushed into git history. That matters here because every
+# deploy carries ~16MB of textures and models, and a branch-published build
+# accumulates those blobs in the repository.
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -29,21 +32,26 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Produces _site: the landing page at /, the game at /play/.
       - name: Build site
         run: npm run build:site
 
-      - name: Publish to gh-pages
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # .nojekyll stops Pages running the site through Jekyll, which would
-          # drop any path starting with an underscore.
-          touch _site/.nojekyll
-          cd _site
-          git init -q
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -q -b gh-pages
-          git add -A
-          git commit -q -m "Publish ${GITHUB_SHA:0:7}"
-          git push -f "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" gh-pages
+      # enablement turns Pages on and points it at Actions, so the repository
+      # setting does not have to be flipped by hand first.
+      - uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
