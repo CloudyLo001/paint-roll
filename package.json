@@ -1,0 +1,22 @@
+{
+  "name": "paint-roll",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "sync-assets": "node \"C:/Users/Asus/.claude/skills/mint-threejs-skills/scripts/sync-mint-assets.mjs\""
+  },
+  "dependencies": {
+    "three": "^0.184.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/three": "^0.184.0",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
